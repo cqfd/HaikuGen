@@ -22,7 +22,10 @@ exports.haiku = function( req, res ) {
   // use the twitter module to get the user's tweets
   T.get('statuses/user_timeline', { screen_name: username }, function( err, reply ) {
 
-    if (reply) {
+    console.log("reply is " + reply);
+    console.log("reply[0] is " + reply[0] );
+
+    if ( reply && reply[0] ) {
 
       var tweets = [];
 
