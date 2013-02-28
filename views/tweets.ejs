@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Tweets!!!!</title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>A Haiku from @<%= name %>'s Recent Tweets</h1>
+
+    <p>
+
+      <% haiku.forEach(function(line) { %>
+      <%= line %><br />
+      <% }); %>
+
+    </p>
+
+  </div>
+</body>
+</html>
+
+
+
