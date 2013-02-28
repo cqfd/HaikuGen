@@ -40,7 +40,6 @@ app.configure('development', function(){
  */
 
 app.get('/', routes.index);
-// app.get('/users', user.list);
 app.get('/tweets/:username', tweets.haiku);
 
 /**

@@ -6,11 +6,11 @@
 // initialize our twitter module
 var Twit = require('twit');
 
-var T = new Twit( {
+var T = new Twit({
     consumer_key:         'DgTV2IDAvVZys3aVSh9DQ'
   , consumer_secret:      'acQKysBsLDvKzdtJDgx4V59RAQoP0I4zNfBctQpk'
   , access_token:         '529484960-PfJyxHD52OKQhOVthE0u3TIU2pwDW2zlUAYIaUuP'
-  , access_token_secret:  '1NVtGdsqhuxWT3flSJtBLcHILWy5s9QwtLz5q0jEg'  
+  , access_token_secret:  '1NVtGdsqhuxWT3flSJtBLcHILWy5s9QwtLz5q0jEg' 
 })
 
 // this runs when we call app.get('/tweets/:username', tweets.haiku); from app.js
@@ -23,7 +23,6 @@ exports.haiku = function( req, res ) {
   T.get('statuses/user_timeline', { screen_name: username }, function( err, reply ) {
 
     console.log("reply is " + reply);
-    console.log("reply[0] is " + reply[0] );
 
     if ( reply && reply[0] ) {
 
@@ -46,7 +45,7 @@ exports.haiku = function( req, res ) {
       // wordArray contains an array of the words found in all tweets
       var thisTweetArray = []
         , wordArray      = []
-        , strippedDownWord;
+        , strippedDownWords;
 
       // execute this for each tweet stored in `words`
       for ( var i = 0; i < tweets.length; i++ ) {
@@ -58,17 +57,17 @@ exports.haiku = function( req, res ) {
           // if the current word isn't a URL, strip off unwanted punctuation
           if (!thisTweetArray[j].match( urlString )) {
 
-            // this operation can yield two words if they are separated by a "-" or
+            // this operation usually yields one word but can yield two words if they are separated by a "-" or
             // other unwanted punctuation
-            strippedDownWord = thisTweetArray[j].match( removePunctuation );
+            strippedDownWords = thisTweetArray[j].match( removePunctuation );
           }
 
           // now strippedDownWord is either null or an array of one or more items
-          if ( strippedDownWord ) {
+          if ( strippedDownWords ) {
             
-            for (var k = 0; k < strippedDownWord.length; k++ ) {
+            for (var k = 0; k < strippedDownWords.length; k++ ) {
 
-              wordArray.push( strippedDownWord[k] );
+              wordArray.push( strippedDownWords[k] );
             }
           }
         }
@@ -80,22 +79,17 @@ exports.haiku = function( req, res ) {
       });
 
       // filter out words that have only consonants and hash tags and other usernames
-      
-      console.log(wordArray);
-
+      // USE FILTER FOR THIS maybe
       wordArray = removeNonWords( wordArray );
 
-      console.log(wordArray);
-
       // shuffle the array to introduce randomness 
-      wordArray = arrayShuffle(wordArray);
+      wordArray = arrayShuffle( wordArray );
 
       // make wordArray into a 2D array of the form 
       // [ ["word1", numberOfSyllables], ["word2", numberOfSyllables] ]
-      for ( var i = 0; i < wordArray.length; i++ ) {
-
-        wordArray[i] = [ wordArray[i], numOfSyllables( wordArray[i]) ];
-      }
+      wordArray = wordArray.map(function( el ) {
+        return [ el, numOfSyllables(el) ];
+      })
 
       // this needs refactoring
       var haiku = [];
@@ -169,13 +163,14 @@ function totalSyllables( words ) {
   return total;
 }
 
-// helper function for makeHaikuLine() 
+// helper function for makeHaikuLine()
 function _makeHaikuLine( words, nSyllables ) {
-  if (nSyllables <= 0 || words.length === 0) return [];
+
+  if ( nSyllables <= 0 || words.length === 0 ) return [];
  
   var word, attempt;
  
-  for (var i=0; i < words.length; i++) {
+  for (var i = 0; i < words.length; i++) {
 
     word = words[i];
 
@@ -185,12 +180,15 @@ function _makeHaikuLine( words, nSyllables ) {
       return attempt;
     }
   }
+
   return [];
 }
  
 // given a an array of words, make a Haiku line of the number of syllables provided
 function makeHaikuLine( words, nSyllables ) {
+
   var line = _makeHaikuLine( words, nSyllables );
+
   return totalSyllables(line) === nSyllables ? line : false;
 }
 
