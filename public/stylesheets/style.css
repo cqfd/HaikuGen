@@ -1,7 +1,78 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: "HelveticaNeueUltraLight", "HelveticaNeue-Ultra-Light", "Helvetica Neue Ultra Light", "HelveticaNeue", "Helvetica Neue", 'TeXGyreHerosRegular', "Arial", sans-serif;
+  font-weight: 100;
+  font-stretch: normal;
+  background-color: #999999;
 }
-a {
-  color: #00B7FF;
+.container {
+  margin: 0 auto;
+  width: 900px;
+  text-align: center;
+}
+h1 {
+  text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.2), 0 20px 20px rgba(0, 0, 0, 0.15);
+  font-size: 100px;
+  color: #adf3ff;
+  margin-top: 60px;
+  margin-bottom: 45px;
+  font-family: Cooper, 'Cooper Black', 'Cooper Std', ballterminals;
+}
+div.username-field {
+  position: relative;
+}
+div.username-field label {
+  position: absolute;
+  margin-top: 15px;
+  margin-left: 32px;
+}
+input#username {
+  padding: 10px 15px 10px 130px;
+  background: white;
+  border: none;
+  height: 30px;
+  width: 250px;
+  border-radius: 4px;
+  font-size: 20px;
+}
+button {
+  margin-top: 20px;
+  width: 395px;
+  height: 50px;
+  border-radius: 4px;
+  background-color: #eee;
+  font-size: 20px;
+  letter-spacing: 5px;
+  color: #49A6B6;
+  font-weight: bold;
+  font-family: Cooper, 'Cooper Black', 'Cooper Std', ballterminals;
+}
+p.haiku {
+  background: #999999;
+  /* Old browsers */
+
+  background: -moz-linear-gradient(left, #999999 0%, #ffffff 10%, #ffffff 90%, #999999 100%);
+  /* FF3.6+ */
+
+  background: -webkit-gradient(linear, left top, right top, color-stop(0%, #999999), color-stop(10%, #ffffff), color-stop(90%, #ffffff), color-stop(100%, #999999));
+  /* Chrome,Safari4+ */
+
+  background: -webkit-linear-gradient(left, #999999 0%, #ffffff 10%, #ffffff 90%, #999999 100%);
+  /* Chrome10+,Safari5.1+ */
+
+  background: -o-linear-gradient(left, #999999 0%, #ffffff 10%, #ffffff 90%, #999999 100%);
+  /* Opera 11.10+ */
+
+  background: -ms-linear-gradient(left, #999999 0%, #ffffff 10%, #ffffff 90%, #999999 100%);
+  /* IE10+ */
+
+  background: linear-gradient(to right, #999999 0%, #ffffff 10%, #ffffff 90%, #999999 100%);
+  /* W3C */
+
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#999999', endColorstr='#999999', GradientType=1);
+  /* IE6-9 */
+
+  font-style: italic;
+  color: #333;
+  font-size: 50px;
+  padding: 30px 0;
 }

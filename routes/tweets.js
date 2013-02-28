@@ -3,6 +3,7 @@
  * GET tweets/:username
  */
 
+// initialize our twitter module
 var Twit = require('twit');
 
 var T = new Twit( {
@@ -12,64 +13,121 @@ var T = new Twit( {
   , access_token_secret:  '1NVtGdsqhuxWT3flSJtBLcHILWy5s9QwtLz5q0jEg'  
 })
 
+// this runs when we call app.get('/tweets/:username', tweets.haiku); from app.js
 exports.haiku = function( req, res ) {
   
+  // get the username from the URL
   var username = req.params.username;
 
-  T.get('statuses/user_timeline', { screen_name: username }, function(err, reply) {
+  // use the twitter module to get the user's tweets
+  T.get('statuses/user_timeline', { screen_name: username }, function( err, reply ) {
 
     var tweets = [];
 
-    // array tweets contains the text of each tweet
+    // reply is a JSON object in the form on an array of tweets
+
+    // tweets is an array containing the text of each tweet
+    // [ "tweet 1 text", "tweet 2 text", ... ]
     for ( var i = 0; i < reply.length; i++ ) {
       tweets.push( reply[i].text );
     }
 
     // this regexp matches strings of one or more characters [a-z],
     // effectively trimming off punctuation and hash tags and stuff
-    var findWords = /([a-zA-Z']+)/g;
-    var wordArray = [];
+    var removePunctuation = /([#@a-zA-Z']+)/g;
+    var urlString = /http/;
+
+    // thisTweetArray will store the words in a given tweet as words in an array
+    // wordArray contains an array of the words found in all tweets
+    var thisTweetArray = []
+      , wordArray      = []
+      , strippedDownWord;
 
     // execute this for each tweet stored in `words`
     for ( var i = 0; i < tweets.length; i++ ) {
 
-      thisTweetArray = tweets[i].match(findWords) 
+      thisTweetArray = tweets[i].split(' ');
 
       for (var j = 0; j < thisTweetArray.length; j++ ) {
 
-        wordArray.push(thisTweetArray[j]);
+        // if the current word isn't a URL, strip off unwanted punctuation
+        if (!thisTweetArray[j].match( urlString )) {
+
+          // this operation can yield two words if they are separated by a "-" or
+          // other unwanted punctuation
+          strippedDownWord = thisTweetArray[j].match( removePunctuation );
+        }
+
+        // now strippedDownWord is either null or an array of one or more items
+        if ( strippedDownWord ) {
+          
+          for (var k = 0; k < strippedDownWord.length; k++ ) {
+
+            wordArray.push( strippedDownWord[k] );
+          }
+        }
       }
     }
 
-    // remove duplicates
+    // remove duplicate words
     wordArray = wordArray.filter(function(elem, pos) {
       return wordArray.indexOf(elem) === pos;
     });
 
+    // filter out words that have only consonants and hash tags and other usernames
+    
+    console.log(wordArray);
+
+    wordArray = removeNonWords( wordArray );
+
+    console.log(wordArray);
+
+    // shuffle the array to introduce randomness 
     wordArray = arrayShuffle(wordArray);
 
+    // make wordArray into a 2D array of the form 
+    // [ ["word1", numberOfSyllables], ["word2", numberOfSyllables] ]
     for ( var i = 0; i < wordArray.length; i++ ) {
 
       wordArray[i] = [ wordArray[i], numOfSyllables( wordArray[i]) ];
     }
 
+    // this needs refactoring
     var haiku = [];
 
-    haiku.push(makeHaikuLine( wordArray, 5 ));
-    wordArray = arrayDifference ( wordArray, haiku[0] );
-    haiku.push(makeHaikuLine( wordArray, 7 ));
-    wordArray = arrayDifference ( wordArray, haiku[1] );
+    // form the first haiku line
     haiku.push(makeHaikuLine( wordArray, 5 ));
 
+    // remove the words used to form that line from wordArray
+    wordArray = arrayDifference ( wordArray, haiku[0] );
+
+    // form the second haiku line
+    haiku.push(makeHaikuLine( wordArray, 7 ));
+
+    // remove the words used to form that line from wordArray
+    wordArray = arrayDifference ( wordArray, haiku[1] );
+
+    // form the third and last haiku line
+    haiku.push(makeHaikuLine( wordArray, 5 ));
+
+    // `haiku` in its final form is an array of three strings representing the three lines
+    // [ "line 1", "line 2", "line 3" ]
     haiku = haiku.map( function (line) {
       return line.map( function (word) {
         return word[0];
       }).join(' ');
     });
-    
-    console.log( haiku );
 
-    res.render( "tweets.ejs", { tweets: reply, name: username, haiku: haiku })
+    for (var i = 0; i < haiku.length; i++ ) {
+
+      haiku[i] = haiku[i].toLowerCase();
+
+      haiku[i] = haiku[i].charAt( 0 ).toUpperCase() + haiku[i].slice(1);
+
+    }
+
+    // render the view tweets.ejs
+    res.render( "tweets.ejs", { title: 'TWITTER HAIKU', tweets: reply, name: username, haiku: haiku })
   });
 }
 
@@ -125,6 +183,27 @@ function _makeHaikuLine( words, nSyllables ) {
 function makeHaikuLine( words, nSyllables ) {
   var line = _makeHaikuLine( words, nSyllables );
   return totalSyllables(line) === nSyllables ? line : false;
+}
+
+// attempts to remove non-words from an array of words
+function removeNonWords( words ) {
+
+  var allConsonants = /\b[b-df-hj-np-tv-z]+\b/
+    , returnArr = [];
+
+  for ( var i = 0; i < words.length; i++ ) {
+
+    // if a word is all consonants, remove it
+    if ( !words[i].toLowerCase().match( allConsonants ) 
+      && !words[i].match( /^#/ )
+      && !words[i].match( /^@/ )
+      ) {
+      
+      returnArr.push( words[i] );
+    }
+  }
+
+  return returnArr;
 }
 
 // returns the difference between two arrays

@@ -8,15 +8,25 @@
 
 <body>
   <div class="container">
-    <h1>A Haiku from @<%= name %>'s Recent Tweets</h1>
+    
+    <h1><%= title %></h1>
 
-    <p>
+    <p class="haiku">
 
       <% haiku.forEach(function(line) { %>
       <%= line %><br />
       <% }); %>
 
     </p>
+
+    
+    <button type="button" onclick="location.href='/'">
+      &lt;&lt;BACK
+    </button>
+
+    <button type="button"  onClick="history.go(0)" value="Refresh">
+      AGAIN!!
+    </button>
 
   </div>
 </body>
