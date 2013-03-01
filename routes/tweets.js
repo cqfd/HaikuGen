@@ -3,6 +3,13 @@
  * GET tweets/:username
  */
 
+// known error:
+// /Users/patrickestabrook/Projects/Node.js Experiments/HaikuGen/routes/tweets.js:124
+// 17:30:08 web.1  |         return line.map( function (word) {
+// 17:30:08 web.1  |                     ^
+// 17:30:08 web.1  | TypeError: Object false has no method 'map'
+
+
 // initialize our twitter module
 var Twit = require('twit');
 
@@ -146,6 +153,7 @@ function numOfSyllables ( word ) {
   }
 
   word = word.toLowerCase();
+
   word = word.replace(/(?:[^aeiouy]es|ed|[^aeiouy]e)$/, '');
   word = word.replace(/^y/, '');
 
@@ -243,3 +251,9 @@ function arrayShuffle( arr ) {
     }
     return arr;
 };
+
+
+
+// A set up structures
+// Easy dirty great was is
+// Amazing functions
