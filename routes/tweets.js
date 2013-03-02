@@ -9,7 +9,6 @@
 // 17:30:08 web.1  |                     ^
 // 17:30:08 web.1  | TypeError: Object false has no method 'map'
 
-
 // initialize our twitter module
 var Twit = require('twit');
 
@@ -22,81 +21,73 @@ var T = new Twit({
 
 // this runs when we call app.get('/tweets/:username', tweets.haiku); from app.js
 exports.haiku = function( req, res ) {
-  
+
   // get the username from the URL
   var username = req.params.username;
 
   // use the twitter module to get the user's tweets
   T.get('statuses/user_timeline', { screen_name: username }, function( err, reply ) {
 
-    console.log("reply is " + reply);
+    try {
 
-    if ( reply && reply[0] ) {
+      // test to see if user exists and has tweeted
+      if ( !(reply && reply[0] )) {
+        throw { name: "error", message: "something fuckin' happened!" + reply };
+      }
 
-      var tweets = [];
+      var tweets    = []
+        , wordArray = [];
 
-      // reply is a JSON object in the form on an array of tweets
-
-      // tweets is an array containing the text of each tweet
-      // [ "tweet 1 text", "tweet 2 text", ... ]
+      // fill `tweets` with the text from each tweet
       for ( var i = 0; i < reply.length; i++ ) {
         tweets.push( reply[i].text );
       }
 
-      // this regexp matches strings of one or more characters [a-z],
-      // effectively trimming off punctuation and hash tags and stuff
-      var removePunctuation = /([#@a-zA-Z']+)/g;
-      var urlString = /http/;
+      // fill `wordArray` with words from tweets
+      tweets.forEach(function( tweet ) {
 
-      // thisTweetArray will store the words in a given tweet as words in an array
-      // wordArray contains an array of the words found in all tweets
-      var thisTweetArray = []
-        , wordArray      = []
-        , strippedDownWords;
+        // form an array of the words from a tweet
+        tweet.split( /[ -]/ ).forEach(function( word ) { 
 
-      // execute this for each tweet stored in `words`
-      for ( var i = 0; i < tweets.length; i++ ) {
-
-        thisTweetArray = tweets[i].split(' ');
-
-        for (var j = 0; j < thisTweetArray.length; j++ ) {
-
-          // if the current word isn't a URL, strip off unwanted punctuation
-          if (!thisTweetArray[j].match( urlString )) {
-
-            // this operation usually yields one word but can yield two words if they are separated by a "-" or
-            // other unwanted punctuation
-            strippedDownWords = thisTweetArray[j].match( removePunctuation );
-          }
-
-          // now strippedDownWord is either null or an array of one or more items
-          if ( strippedDownWords ) {
-            
-            for (var k = 0; k < strippedDownWords.length; k++ ) {
-
-              wordArray.push( strippedDownWords[k] );
-            }
-          }
-        }
-      }
-
-      // remove duplicate words
-      wordArray = wordArray.filter(function(elem, pos) {
-        return wordArray.indexOf(elem) === pos;
+          // push each word onto the wordArray in lower case, unless it's "I"
+          wordArray.push( word.toLowerCase() === "i" ? word.toUpperCase() : word ); 
+        }); 
       });
 
-      // filter out words that have only consonants and hash tags and other usernames
-      // USE FILTER FOR THIS maybe
-      wordArray = removeNonWords( wordArray );
+      // strip punctuation from beginning/end of word
+      wordArray = wordArray.map(function( word ) {
+
+        word = word.replace( /^[^a-zA-Z#@]+\b/, '' )  // beginning of word (preserve hashtags and usernames)
+                   .replace( /\b[^a-zA-Z]+$/  , '' ); // end of word
+
+        return word;
+      });
+
+      // filter out unwanted words: URLs, words of all consonants, etc.
+      wordArray = wordArray.filter(function( word, index ) {
+        
+        return !(    word.match( /http/ )                     // URLs
+                  || word.match( /\b[b-df-hj-np-tv-z]+\b/ )   // all consonants
+                  || word.match( /#\b/ )                      // hash tags
+                  || word.match( /@\b/ )                      // usernames
+                  || word.match( /^[^a-zA-Z]+$/ )             // isn't all letters
+                  || word === ''                              // empty string
+                );
+      });
+
+      // remove duplicate words
+      wordArray = wordArray.filter(function( elem, pos ) {
+
+        return wordArray.indexOf(elem) === pos;
+      });
 
       // shuffle the array to introduce randomness 
       wordArray = arrayShuffle( wordArray );
 
-      // make wordArray into a 2D array of the form 
-      // [ ["word1", numberOfSyllables], ["word2", numberOfSyllables] ]
+      // make wordArray into a 2D array of the form [ ["word1", numberOfSyllables], ["word2", numberOfSyllables] ]
       wordArray = wordArray.map(function( el ) {
         return [ el, numOfSyllables(el) ];
-      })
+      });
 
       // this needs refactoring
       var haiku = [];
@@ -133,33 +124,49 @@ exports.haiku = function( req, res ) {
       }
 
       // render the view tweets.ejs
-      res.render( "tweets.ejs", { title: 'TWITTER HAIKU', tweets: reply, name: username, haiku: haiku })
+      res.render( "tweets.ejs", { title: 'TWITTER HAIKU', tweets: reply, name: username, haiku: haiku });
     }
-    else {
-      res.render( "error.ejs", { title: 'TWITTER HAIKU'});
+
+    catch (e) {
+
+        res.render( "error.ejs", { title: 'TWITTER HAIKU', error: e});
     }
   });
-}
+};
 
 /**
  * Helper functions
  */
 
-// returns a guess of the number of syllables in a word
-function numOfSyllables ( word ) {
+// given a an array of words, make a Haiku line of the number of syllables provided
+function makeHaikuLine( words, nSyllables ) {
 
-  if (word.length <= 3) { 
-    return 1; 
+  var line = _makeHaikuLine( words, nSyllables );
+
+  return totalSyllables(line) === nSyllables ? line : false;
+}
+
+// helper function for makeHaikuLine()
+// this shit blows my mind
+function _makeHaikuLine( words, nSyllables ) {
+
+  if ( nSyllables <= 0 || words.length === 0 ) return [];
+
+  var word, attempt;
+
+  for (var i = 0; i < words.length; i++) {
+
+    word = words[i];
+
+    attempt = [word].concat(_makeHaikuLine( words.slice( i + 1 ), nSyllables - word[1] ));
+
+    if (totalSyllables(attempt) == nSyllables) {
+
+      return attempt;
+    }
   }
 
-  word = word.toLowerCase();
-
-  word = word.replace(/(?:[^aeiouy]es|ed|[^aeiouy]e)$/, '');
-  word = word.replace(/^y/, '');
-
-  var syllables = word.match(/[aeiouy]{1,2}/g); 
-
-  return syllables ? syllables.length : 0;
+  return [];
 }
 
 // given an array of words like [ ["word",1], ["another",3] ] this returns the total number of syllables
@@ -171,58 +178,24 @@ function totalSyllables( words ) {
   return total;
 }
 
-// helper function for makeHaikuLine()
-function _makeHaikuLine( words, nSyllables ) {
+// returns a guess of the number of syllables in a word
+function numOfSyllables ( word ) {
 
-  if ( nSyllables <= 0 || words.length === 0 ) return [];
- 
-  var word, attempt;
- 
-  for (var i = 0; i < words.length; i++) {
-
-    word = words[i];
-
-    attempt = [word].concat(_makeHaikuLine( words.slice( i + 1 ), nSyllables - word[1] ));
-
-    if (totalSyllables(attempt) == nSyllables) {
-      return attempt;
-    }
+  if (word.length <= 3) {
+    return 1;
   }
 
-  return [];
-}
- 
-// given a an array of words, make a Haiku line of the number of syllables provided
-function makeHaikuLine( words, nSyllables ) {
+  word = word.toLowerCase();
 
-  var line = _makeHaikuLine( words, nSyllables );
+  word = word.replace(/(?:[^aeiouy]es|ed|[^aeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
 
-  return totalSyllables(line) === nSyllables ? line : false;
-}
+  var syllables = word.match(/[aeiouy]{1,2}/g);
 
-// attempts to remove non-words from an array of words
-function removeNonWords( words ) {
-
-  var allConsonants = /\b[b-df-hj-np-tv-z]+\b/
-    , returnArr = [];
-
-  for ( var i = 0; i < words.length; i++ ) {
-
-    // if a word is all consonants, remove it
-    if ( !words[i].toLowerCase().match( allConsonants ) 
-      && !words[i].match( /^#/ )
-      && !words[i].match( /^@/ )
-      ) {
-      
-      returnArr.push( words[i] );
-    }
-  }
-
-  return returnArr;
+  return syllables ? syllables.length : 0;
 }
 
 // returns the difference between two arrays
-// e.g. arrayDifference( [1,2,3,4], [3,4] ) returns [1,2]
 function arrayDifference ( arr1, arr2 ) {
   return arr1.filter(function( elArr1 ) {
     return !(arr2.indexOf( elArr1 ) > -1);
