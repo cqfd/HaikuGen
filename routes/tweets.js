@@ -51,8 +51,8 @@ exports.haiku = function( req, res ) {
         // form an array of the words from a tweet
         tweet.split( /[ -]/ ).forEach(function( word ) { 
 
-          // push each word onto the wordArray in lower case, unless it's "I"
-          wordArray.push( word.toLowerCase() === "i" ? word.toUpperCase() : word ); 
+          // push each word onto the wordArray in lower case
+          wordArray.push( word.toLowerCase() ); 
         }); 
       });
 
@@ -69,7 +69,7 @@ exports.haiku = function( req, res ) {
       wordArray = wordArray.filter(function( word, index ) {
         
         return !(    word.match( /http/ )                     // URLs
-                  || word.match( /\b[b-df-hj-np-tv-z]+\b/ )   // all consonants
+                  || word.match( /\b[b-df-hj-np-tv-z]+\b/i )   // all consonants
                   || word.match( /#\b/ )                      // hash tags
                   || word.match( /@\b/ )                      // usernames
                   || word.match( /^[^a-zA-Z]+$/ )             // isn't all letters
@@ -113,9 +113,9 @@ exports.haiku = function( req, res ) {
 
       // make the first character of each line upper case
       for (var i = 0; i < haiku.length; i++ ) {
-        
+
         // make each word lower case unless it's "I"
-        haiku[i] = haiku[i].toLowerCase() === 'i' ? : haiku[i] : haiku[i].toLowerCase();
+        haiku[i] = haiku[i].replace( /\bi\b/g, "I" );
 
         // make the first character of each line upper case
         haiku[i] = haiku[i].charAt( 0 ).toUpperCase() + haiku[i].slice(1);
