@@ -30,13 +30,15 @@ exports.haiku = function( req, res ) {
 
     try {
 
+      var tweets    = []
+        , wordArray = [];
+
+
       // test to see if user exists and has tweeted
       if ( !(reply && reply[0] )) {
         throw { name: "error", message: "something fuckin' happened!" + reply };
       }
 
-      var tweets    = []
-        , wordArray = [];
 
       // fill `tweets` with the text from each tweet
       for ( var i = 0; i < reply.length; i++ ) {
@@ -77,7 +79,6 @@ exports.haiku = function( req, res ) {
 
       // remove duplicate words
       wordArray = wordArray.filter(function( elem, pos ) {
-
         return wordArray.indexOf(elem) === pos;
       });
 
@@ -92,19 +93,14 @@ exports.haiku = function( req, res ) {
       // this needs refactoring
       var haiku = [];
 
-      // form the first haiku line
       haiku.push(makeHaikuLine( wordArray, 5 ));
 
-      // remove the words used to form that line from wordArray
       wordArray = arrayDifference ( wordArray, haiku[0] );
 
-      // form the second haiku line
       haiku.push(makeHaikuLine( wordArray, 7 ));
 
-      // remove the words used to form that line from wordArray
       wordArray = arrayDifference ( wordArray, haiku[1] );
 
-      // form the third and last haiku line
       haiku.push(makeHaikuLine( wordArray, 5 ));
 
       // `haiku` in its final form is an array of three strings representing the three lines
@@ -115,12 +111,14 @@ exports.haiku = function( req, res ) {
         }).join(' ');
       });
 
+      // make the first character of each line upper case
       for (var i = 0; i < haiku.length; i++ ) {
+        
+        // make each word lower case unless it's "I"
+        haiku[i] = haiku[i].toLowerCase() === 'i' ? : haiku[i] : haiku[i].toLowerCase();
 
-        haiku[i] = haiku[i].toLowerCase();
-
+        // make the first character of each line upper case
         haiku[i] = haiku[i].charAt( 0 ).toUpperCase() + haiku[i].slice(1);
-
       }
 
       // render the view tweets.ejs
@@ -147,7 +145,6 @@ function makeHaikuLine( words, nSyllables ) {
 }
 
 // helper function for makeHaikuLine()
-// this shit blows my mind
 function _makeHaikuLine( words, nSyllables ) {
 
   if ( nSyllables <= 0 || words.length === 0 ) return [];
@@ -224,8 +221,6 @@ function arrayShuffle( arr ) {
     }
     return arr;
 };
-
-
 
 // A set up structures
 // Easy dirty great was is
