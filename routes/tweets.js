@@ -9,7 +9,6 @@
 // 17:30:08 web.1  |                     ^
 // 17:30:08 web.1  | TypeError: Object false has no method 'map'
 
-// initialize our twitter module
 var Twit = require('twit');
 
 var T = new Twit({
@@ -19,10 +18,8 @@ var T = new Twit({
   , access_token_secret:  '1NVtGdsqhuxWT3flSJtBLcHILWy5s9QwtLz5q0jEg' 
 })
 
-// this runs when we call app.get('/tweets/:username', tweets.haiku); from app.js
 exports.haiku = function( req, res ) {
 
-  // get the username from the URL
   var username = req.params.username;
 
   // use the twitter module to get the user's tweets

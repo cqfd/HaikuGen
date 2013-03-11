@@ -5,7 +5,6 @@
 
 var express = require('express')
   , routes  = require('./routes')
-  // , user    = require('./routes/user')
   , tweets  = require('./routes/tweets')
   , http    = require('http')
   , path    = require('path')
